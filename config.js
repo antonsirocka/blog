@@ -3,7 +3,7 @@
 module.exports = {
   url: 'https://blog.anton-it.dev',
   pathPrefix: '/',
-  title: 'All things cloud infrastructure related',
+  title: 'Anton\'s blog, Azure cloud and all things infrastructure related',
   subtitle: 'My insights, analysis and tips to share with dev community',
   copyright: '©2020 All rights reserved.',
   disqusShortname: '',
