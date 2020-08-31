@@ -4,8 +4,7 @@ import React from 'react';
 import styles from './Author.module.scss';
 // import { useSiteMetadata } from '../../../hooks';
 
-const Author = () => {
-  return (
+const Author = () => (
     <div className={styles['author']}>
       {/* <p className={styles['author__bio']}>
         {author.bio}
@@ -20,6 +19,5 @@ const Author = () => {
       </p> */}
     </div>
   );
-};
 
 export default Author;
