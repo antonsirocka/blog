@@ -1,7 +1,7 @@
 ---
 title: "About me"
 template: "page"
-socialImage: "/photo.jpg"
+socialImage: "photo.jpg"
 ---
 
 I'm a cloud engineer with background in .net development who found passion in cloud infrastructure solutions. 

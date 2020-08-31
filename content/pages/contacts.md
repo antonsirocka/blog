@@ -1,7 +1,7 @@
 ---
 title: "Contact me"
 template: "page"
-socialImage: "/photo.jpg"
+socialImage: "photo.jpg"
 ---
 
 Email: [mail@anton-it.dev](mailto:mail@anton-it.dev)
