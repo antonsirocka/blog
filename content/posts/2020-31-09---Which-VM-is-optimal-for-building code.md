@@ -10,7 +10,7 @@ tags:
   - "VM size"
   - "build times"
   - "F-series"
-description: "Every company runs into this challenge sooner or later. How to optimally build growing code base as efficiently as possible. Azure offers VMs with varying CPU families. This article attempts to answer which one provides the best value for money."
+description: "Every company runs into this challenge sooner or later - improve efficiency, lower build times, deploy faster. Azure offers VMs with varying CPU families. This article attempts to answer which one provides the best value for money."
 socialImage: "media/build-times-xeon.jpg"
 ---
 
