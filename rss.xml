@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[All things cloud infrastructure related]]></title><description><![CDATA[My insights, analysis and tips to share with dev community]]></description><link>https://blog.anton-it.dev</link><generator>GatsbyJS</generator><lastBuildDate>Mon, 31 Aug 2020 19:42:44 GMT</lastBuildDate><item><title><![CDATA[Optimal VM for building code?]]></title><description><![CDATA[Every company runs into this challenge sooner or later. How to optimally build growing code base as efficiently as possible. Azure offers VMs with varying CPU families. This article attempts to answer which one provides the best value for money.]]></description><link>https://blog.anton-it.dev/posts/optimal-vm-for-building-code</link><guid isPermaLink="false">https://blog.anton-it.dev/posts/optimal-vm-for-building-code</guid><pubDate>Thu, 27 Feb 2020 22:40:32 GMT</pubDate><content:encoded>&lt;p&gt;Every company runs into this challenge sooner or later. How to optimally build growing code base as efficiently as possible. Azure offers VMs in varying CPU families. This article attempts to answer which one provides the best value for money.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#the-test-setup&quot;&gt;The test setup&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#testing-methodology&quot;&gt;Testing methodology&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#results&quot;&gt;Results&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#conclusions&quot;&gt;Conclusions&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;the-test-setup&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#the-test-setup&quot; aria-label=&quot;the test setup permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;The test setup&lt;/h2&gt;
+&lt;p&gt;The test will consist of 4 different configurations. Prices are approximate for West Europe Azure region at the time of writing this document.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;B2ms (2 vcores, burstable) - £52.23/month&lt;/li&gt;
+&lt;li&gt;B4ms (4 vcores, burstable) – £104.46/month&lt;/li&gt;
+&lt;li&gt;F4s_v2 (4 vcores, compute optimised) - £105.55/month&lt;/li&gt;
+&lt;li&gt;D4s_v3 (4 vcores, general purpose) - £130.58/month&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code class=&quot;language-text&quot;&gt;B-series&lt;/code&gt; are cost-efficient VMs suitable for workloads that don’t require high network/disk throughput. When they’re not fully utilised they will bank up CPU credits and utilise them later when needed. This makes them an attractive candidate for build agents (build up a credit bank overnight and utilise the computing resources during the day). More info on these VMs is &lt;a href=&quot;https://azure.microsoft.com/en-gb/blog/introducing-b-series-our-new-burstable-vm-size/&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-text&quot;&gt;Fsv2-series&lt;/code&gt; VMs run on Intel Xeon Platinum CPUs with high clock speeds and performance in floating point operations. They come with lower memory allocation than burstable VMs, but this is not necessarily a problem for build agents. They are also priced very competitevly. More info on these bad boys &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/virtual-machines/fsv2-series&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;is here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-text&quot;&gt;D4s_v3&lt;/code&gt; are suitable for most general purpose workloads. They come with a higher memory allocation than F-series VMs. They are classed as a good all-around VMs making them an attractive default choice for users who are just trying things out. Optimisation tends to be an after-thought, which rarely materialises. More info on Dsv3 series &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/virtual-machines/dv3-dsv3-series&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&quot;testing-methodology&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#testing-methodology&quot; aria-label=&quot;testing methodology permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Testing methodology&lt;/h2&gt;
+&lt;p&gt;The build process will run on a self-hosted Azure DevOps build agents in AKS (Azure Kubernetes Service). A separate worker node pool is created for each VM size as follows:&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 960px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/6a361/build-times-k8s-pools.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 15.416666666666664%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAADABQDASIAAhEBAxEB/8QAFwABAAMAAAAAAAAAAAAAAAAAAAECBf/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhADEAAAAcWAsD//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAEFAn//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAEDAQE/AT//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAECAQE/AT//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAY/An//xAAZEAABBQAAAAAAAAAAAAAAAAABABAxQXH/2gAIAQEAAT8hN6whf//aAAwDAQACAAMAAAAQgA//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAEDAQE/ED//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAECAQE/ED//xAAXEAEAAwAAAAAAAAAAAAAAAAAAATFB/9oACAEBAAE/EAyFL//Z&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/8ac56/build-times-k8s-pools.webp 240w,
+/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/d3be9/build-times-k8s-pools.webp 480w,
+/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/e46b2/build-times-k8s-pools.webp 960w,
+/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/2d20a/build-times-k8s-pools.webp 1351w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/09b79/build-times-k8s-pools.jpg 240w,
+/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/7cc5e/build-times-k8s-pools.jpg 480w,
+/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/6a068/build-times-k8s-pools.jpg 960w,
+/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/6a361/build-times-k8s-pools.jpg 1351w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/0d5fcbaa50b84ae1ab5fc1e9cfbebb9c/6a068/build-times-k8s-pools.jpg&quot;
+          alt=&quot;build-times-k8s-pools.jpg&quot;
+          title=&quot;build-times-k8s-pools.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;The resource requests and limits for Kubernetes pods hosting the build agents are set up as follows:&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 152px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/612584a7a6b83d960e3953011e24956f/2f70b/build-times-k8s-limits.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 89.47368421052632%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAASABQDASIAAhEBAxEB/8QAGAABAQADAAAAAAAAAAAAAAAAAAIBBAX/xAAVAQEBAAAAAAAAAAAAAAAAAAAAAf/aAAwDAQACEAMQAAAB5BlIC7FCQF//xAAYEAACAwAAAAAAAAAAAAAAAAAAARARIP/aAAgBAQABBQJDhZo//8QAFREBAQAAAAAAAAAAAAAAAAAAEEH/2gAIAQMBAT8BKf/EABURAQEAAAAAAAAAAAAAAAAAABBB/9oACAECAQE/ASH/xAAUEAEAAAAAAAAAAAAAAAAAAAAw/9oACAEBAAY/Ah//xAAZEAEAAgMAAAAAAAAAAAAAAAABABEQMVH/2gAIAQEAAT8hybReYAvRKLlOE//aAAwDAQACAAMAAAAQj8j8/8QAFREBAQAAAAAAAAAAAAAAAAAAIEH/2gAIAQMBAT8Qof/EABURAQEAAAAAAAAAAAAAAAAAACBB/9oACAECAQE/EIH/xAAfEAEAAgEDBQAAAAAAAAAAAAABABEhMWGBEEFxscH/2gAIAQEAAT8Qo4Q2xBXYDTpSl8afZQjS72jlhwgcTAaL8RtfVP/Z&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/612584a7a6b83d960e3953011e24956f/4e7ec/build-times-k8s-limits.webp 152w&quot;
+          sizes=&quot;(max-width: 152px) 100vw, 152px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/612584a7a6b83d960e3953011e24956f/2f70b/build-times-k8s-limits.jpg 152w&quot;
+          sizes=&quot;(max-width: 152px) 100vw, 152px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/612584a7a6b83d960e3953011e24956f/2f70b/build-times-k8s-limits.jpg&quot;
+          alt=&quot;build-times-k8s-limits.jpg&quot;
+          title=&quot;build-times-k8s-limits.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt; I won’t go into details about the nature of the code being built or the steps in the build process to keep this short and focused. But it does involve the sort of stuff you’d normally expect: Restoring nuget packages, running “dotnet build”, unit testing and pushing the final image to ACR (Azure Container Registry).&lt;/p&gt;
+&lt;h2 id=&quot;results&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#results&quot; aria-label=&quot;results permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Results&lt;/h2&gt;
+&lt;p&gt;Each build run is executed twice. The first run is noticably longer due to docker images being pulled from the internet. These images are then cached for the 2nd run. I’ve also timed the compile time and overall build time separately to get a better indication how the CPU affects the compilation part of the process. &lt;/p&gt;
+&lt;h3 id=&quot;b2ms&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#b2ms&quot; aria-label=&quot;b2ms permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;B2ms&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Overall build time: 15m 19s&lt;/li&gt;
+&lt;li&gt;Compile task: 12m 47s&lt;/li&gt;
+&lt;li&gt;CPU profile:
+&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 608px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/24dd20e00b75f4c348e074367343c226/640be/build-times-b2ms.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 107.08333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAVABQDASIAAhEBAxEB/8QAGAABAAMBAAAAAAAAAAAAAAAAAAIEBQP/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAgED/9oADAMBAAIQAxAAAAHcjwqXGmomW4E9AP/EABsQAAMAAgMAAAAAAAAAAAAAAAABAhITITEy/9oACAEBAAEFAskjZJmivVdy+HEutMGmD//EABgRAAIDAAAAAAAAAAAAAAAAAAERABAS/9oACAEDAQE/AWXNG//EABYRAQEBAAAAAAAAAAAAAAAAAAAREv/aAAgBAgEBPwHLKq//xAAZEAABBQAAAAAAAAAAAAAAAAAQAAEgITH/2gAIAQEABj8CWhxcP//EAB0QAAIBBQEBAAAAAAAAAAAAAAABIRExYZGhQVH/2gAIAQEAAT8hbVG5Gi4z8OoeEnqDw3Wr+Mks9mB7P//aAAwDAQACAAMAAAAQZDA8/8QAGBEBAAMBAAAAAAAAAAAAAAAAAQAQETH/2gAIAQMBAT8QERMO1rP/xAAXEQADAQAAAAAAAAAAAAAAAAAAARFR/9oACAECAQE/EEjIK0rT/8QAHxAAAgICAQUAAAAAAAAAAAAAAREAITFRoUFhkcHR/9oACAEBAAE/EC1AM0YmYGUKNzuvKGx69IQmZDi4E0WCtVAruW0dJgcuO+qf/9k=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/24dd20e00b75f4c348e074367343c226/8ac56/build-times-b2ms.webp 240w,
+/static/24dd20e00b75f4c348e074367343c226/d3be9/build-times-b2ms.webp 480w,
+/static/24dd20e00b75f4c348e074367343c226/f5a85/build-times-b2ms.webp 608w&quot;
+          sizes=&quot;(max-width: 608px) 100vw, 608px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/24dd20e00b75f4c348e074367343c226/09b79/build-times-b2ms.jpg 240w,
+/static/24dd20e00b75f4c348e074367343c226/7cc5e/build-times-b2ms.jpg 480w,
+/static/24dd20e00b75f4c348e074367343c226/640be/build-times-b2ms.jpg 608w&quot;
+          sizes=&quot;(max-width: 608px) 100vw, 608px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/24dd20e00b75f4c348e074367343c226/640be/build-times-b2ms.jpg&quot;
+          alt=&quot;build-times-b2ms.jpg&quot;
+          title=&quot;build-times-b2ms.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;b4ms&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#b4ms&quot; aria-label=&quot;b4ms permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;B4ms&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Overall build time: 9m 27s&lt;/li&gt;
+&lt;li&gt;Compile task: 8m 41s&lt;/li&gt;
+&lt;li&gt;CPU profile:
+&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 960px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/90cee091c1d2e8e8607b3695f64e8960/d8f2d/build-times-b4ms.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 33.75%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAHABQDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAIF/8QAFQEBAQAAAAAAAAAAAAAAAAAAAQL/2gAMAwEAAhADEAAAAdWCwE//xAAYEAADAQEAAAAAAAAAAAAAAAAAAQITEf/aAAgBAQABBQJ3XdGas//EABURAQEAAAAAAAAAAAAAAAAAAAAR/9oACAEDAQE/AYj/xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAECAQE/AT//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAY/An//xAAXEAEBAQEAAAAAAAAAAAAAAAABACFR/9oACAEBAAE/ITILeOt//9oADAMBAAIAAwAAABAIH//EABgRAAIDAAAAAAAAAAAAAAAAAAABETFx/9oACAEDAQE/EFJWaP/EABcRAQEBAQAAAAAAAAAAAAAAAAEAURH/2gAIAQIBAT8QAy4Zf//EABoQAQADAAMAAAAAAAAAAAAAAAEAESExYXH/2gAIAQEAAT8QRjBzCJAt7aIg5D4T/9k=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/90cee091c1d2e8e8607b3695f64e8960/8ac56/build-times-b4ms.webp 240w,
+/static/90cee091c1d2e8e8607b3695f64e8960/d3be9/build-times-b4ms.webp 480w,
+/static/90cee091c1d2e8e8607b3695f64e8960/e46b2/build-times-b4ms.webp 960w,
+/static/90cee091c1d2e8e8607b3695f64e8960/f992d/build-times-b4ms.webp 1440w,
+/static/90cee091c1d2e8e8607b3695f64e8960/3afba/build-times-b4ms.webp 1756w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/90cee091c1d2e8e8607b3695f64e8960/09b79/build-times-b4ms.jpg 240w,
+/static/90cee091c1d2e8e8607b3695f64e8960/7cc5e/build-times-b4ms.jpg 480w,
+/static/90cee091c1d2e8e8607b3695f64e8960/6a068/build-times-b4ms.jpg 960w,
+/static/90cee091c1d2e8e8607b3695f64e8960/644c5/build-times-b4ms.jpg 1440w,
+/static/90cee091c1d2e8e8607b3695f64e8960/d8f2d/build-times-b4ms.jpg 1756w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/90cee091c1d2e8e8607b3695f64e8960/6a068/build-times-b4ms.jpg&quot;
+          alt=&quot;build-times-b4ms.jpg&quot;
+          title=&quot;build-times-b4ms.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;f4s_v2&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#f4s_v2&quot; aria-label=&quot;f4s_v2 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;F4s_v2&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Overall build time: 7m 28s&lt;/li&gt;
+&lt;li&gt;Compile task: 6m 54s&lt;/li&gt;
+&lt;li&gt;CPU profile:
+&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 960px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/36781945fb9b2baa8424a837e2aea4c9/e8305/build-times-f4s.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 56.25%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAALABQDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQCAwX/xAAVAQEBAAAAAAAAAAAAAAAAAAAAAv/aAAwDAQACEAMQAAAB2qpJXLgqH//EABoQAAICAwAAAAAAAAAAAAAAAAABAhMDEBL/2gAIAQEAAQUClLktLGZdI//EABYRAAMAAAAAAAAAAAAAAAAAAAABEf/aAAgBAwEBPwGMjP/EABcRAQADAAAAAAAAAAAAAAAAAAABESH/2gAIAQIBAT8BimP/xAAUEAEAAAAAAAAAAAAAAAAAAAAg/9oACAEBAAY/Al//xAAZEAADAQEBAAAAAAAAAAAAAAAAAREhMWH/2gAIAQEAAT8hdESK3Fh5I5REJh//2gAMAwEAAgADAAAAEMQ//8QAGBEAAgMAAAAAAAAAAAAAAAAAAAERIWH/2gAIAQMBAT8QkdM1P//EABcRAAMBAAAAAAAAAAAAAAAAAAABESH/2gAIAQIBAT8QSNIP/8QAHhAAAgIBBQEAAAAAAAAAAAAAAAERITFBUWGBobH/2gAIAQEAAT8QeIxO4092VJ51Op4H9IpibzYil1yf/9k=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/36781945fb9b2baa8424a837e2aea4c9/8ac56/build-times-f4s.webp 240w,
+/static/36781945fb9b2baa8424a837e2aea4c9/d3be9/build-times-f4s.webp 480w,
+/static/36781945fb9b2baa8424a837e2aea4c9/e46b2/build-times-f4s.webp 960w,
+/static/36781945fb9b2baa8424a837e2aea4c9/983e9/build-times-f4s.webp 1049w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/36781945fb9b2baa8424a837e2aea4c9/09b79/build-times-f4s.jpg 240w,
+/static/36781945fb9b2baa8424a837e2aea4c9/7cc5e/build-times-f4s.jpg 480w,
+/static/36781945fb9b2baa8424a837e2aea4c9/6a068/build-times-f4s.jpg 960w,
+/static/36781945fb9b2baa8424a837e2aea4c9/e8305/build-times-f4s.jpg 1049w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/36781945fb9b2baa8424a837e2aea4c9/6a068/build-times-f4s.jpg&quot;
+          alt=&quot;build-times-f4s.jpg&quot;
+          title=&quot;build-times-f4s.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;d4s_v3&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#d4s_v3&quot; aria-label=&quot;d4s_v3 permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;D4s_v3&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Overall build time: 8m 41s&lt;/li&gt;
+&lt;li&gt;Compile task: 8m 3s&lt;/li&gt;
+&lt;li&gt;CPU profile:
+&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 960px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/9be1acad46be7f5b8a046277c3a0c3ab/e92da/build-times-d4s.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 37.083333333333336%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAHABQDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAMF/8QAFgEBAQEAAAAAAAAAAAAAAAAAAgAB/9oADAMBAAIQAxAAAAHXkMht/8QAGBAAAwEBAAAAAAAAAAAAAAAAAQITABH/2gAIAQEAAQUCdyGoe1O//8QAFREBAQAAAAAAAAAAAAAAAAAAABH/2gAIAQMBAT8BiP/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8BP//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEABj8Cf//EABcQAQEBAQAAAAAAAAAAAAAAAAEAETH/2gAIAQEAAT8hwRyHxCl//9oADAMBAAIAAwAAABB/3//EABgRAQEAAwAAAAAAAAAAAAAAAAEAESFh/9oACAEDAQE/EHRcz1f/xAAYEQEAAwEAAAAAAAAAAAAAAAABABExUf/aAAgBAgEBPxACslHJ/8QAGhABAAMAAwAAAAAAAAAAAAAAAQARQSFhcf/aAAgBAQABPxDq2wj2/GNEui0+E//Z&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/9be1acad46be7f5b8a046277c3a0c3ab/8ac56/build-times-d4s.webp 240w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/d3be9/build-times-d4s.webp 480w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/e46b2/build-times-d4s.webp 960w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/f992d/build-times-d4s.webp 1440w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/bd1ed/build-times-d4s.webp 1597w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/9be1acad46be7f5b8a046277c3a0c3ab/09b79/build-times-d4s.jpg 240w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/7cc5e/build-times-d4s.jpg 480w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/6a068/build-times-d4s.jpg 960w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/644c5/build-times-d4s.jpg 1440w,
+/static/9be1acad46be7f5b8a046277c3a0c3ab/e92da/build-times-d4s.jpg 1597w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/9be1acad46be7f5b8a046277c3a0c3ab/6a068/build-times-d4s.jpg&quot;
+          alt=&quot;build-times-d4s.jpg&quot;
+          title=&quot;build-times-d4s.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&quot;memory-consumption-profile&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#memory-consumption-profile&quot; aria-label=&quot;memory consumption profile permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Memory consumption profile&lt;/h3&gt;
+&lt;p&gt;The profile was very similar across all tested configurations. I’ve therefore only included a single graph. &lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 960px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/07c8041c832e87510f03d36e54ad736e/8b5c7/build-times-memory-allocation.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 57.08333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAALABQDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQBAwX/xAAWAQEBAQAAAAAAAAAAAAAAAAABAgP/2gAMAwEAAhADEAAAAduuFrzaFRP/xAAaEAABBQEAAAAAAAAAAAAAAAAAAQIDERMS/9oACAEBAAEFAnO5NFNFJSij/8QAFhEBAQEAAAAAAAAAAAAAAAAAAQAR/9oACAEDAQE/AVdtb//EABYRAQEBAAAAAAAAAAAAAAAAAAEAEf/aAAgBAgEBPwECwv/EABUQAQEAAAAAAAAAAAAAAAAAABAB/9oACAEBAAY/AmP/xAAbEAACAgMBAAAAAAAAAAAAAAAAARFhECGRgf/aAAgBAQABPyHUhLZQihYoX09dP//aAAwDAQACAAMAAAAQKM//xAAXEQADAQAAAAAAAAAAAAAAAAAAARFh/9oACAEDAQE/EFIRuf/EABYRAQEBAAAAAAAAAAAAAAAAAAEQIf/aAAgBAgEBPxBhsv/EAB0QAAEEAgMAAAAAAAAAAAAAAAEAESExENFhkfH/2gAIAQEAAT8QJIJWvaxQvci6LI3O889oAIB79r//2Q==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/07c8041c832e87510f03d36e54ad736e/8ac56/build-times-memory-allocation.webp 240w,
+/static/07c8041c832e87510f03d36e54ad736e/d3be9/build-times-memory-allocation.webp 480w,
+/static/07c8041c832e87510f03d36e54ad736e/e46b2/build-times-memory-allocation.webp 960w,
+/static/07c8041c832e87510f03d36e54ad736e/6a022/build-times-memory-allocation.webp 1038w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/07c8041c832e87510f03d36e54ad736e/09b79/build-times-memory-allocation.jpg 240w,
+/static/07c8041c832e87510f03d36e54ad736e/7cc5e/build-times-memory-allocation.jpg 480w,
+/static/07c8041c832e87510f03d36e54ad736e/6a068/build-times-memory-allocation.jpg 960w,
+/static/07c8041c832e87510f03d36e54ad736e/8b5c7/build-times-memory-allocation.jpg 1038w&quot;
+          sizes=&quot;(max-width: 960px) 100vw, 960px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/07c8041c832e87510f03d36e54ad736e/6a068/build-times-memory-allocation.jpg&quot;
+          alt=&quot;build-times-memory-allocation.jpg&quot;
+          title=&quot;build-times-memory-allocation.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;The profile suggests an AKS node needs between 1 – 2.5GB of memory to host a single build agent. B4ms and D4s_v3 both come with 16 GB of RAM, but 8GB is sufficient to host 2 agents on a single node. The additional RAM is therefore not utilised.&lt;/p&gt;
+&lt;h3 id=&quot;disk-performance&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#disk-performance&quot; aria-label=&quot;disk performance permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Disk performance&lt;/h3&gt;
+&lt;p&gt;All tests were done on nodes utilising a single 127GB premium disk (100MBps max throughput). I haven’t tested using a larger disk with higher throughput, because the throughput here will be limited by VM size. D4s&lt;em&gt;v3 and F4s&lt;/em&gt;v2 have a maximum throughput of 96MBps. &lt;/p&gt;
+&lt;h2 id=&quot;conclusions&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#conclusions&quot; aria-label=&quot;conclusions permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Conclusions&lt;/h2&gt;
+&lt;p&gt;The measured results suggest &lt;code class=&quot;language-text&quot;&gt;F4s_v2&lt;/code&gt; is the optimal SKU to achieve lowest build times/cost ratio. Hosting 2 agents on each node appears to be a balanced approach. F4s_v2 is also the lowest SKU that supports accelerated networking (you can read more about accelerated networking &lt;a href=&quot;https://azure.microsoft.com/en-gb/blog/maximize-your-vm-s-performance-with-accelerated-networking-now-generally-available-for-both-windows-and-linux/&quot; target=&quot;_blank&quot; rel=&quot;nofollow noopener noreferrer&quot;&gt;here&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Utilising general-purpose D4s_v3 nodes provides similar peformance, but at significantly higher price due to the additional memory, which is not utilised.&lt;/p&gt;
+&lt;p&gt;One may consider de-allocating VMs in out-of-office hours and starting them again first thing in the morning. However B-series VMs are not suitable for this, because they rely on banked CPU credits, which are lost when a VM is de-allocated. I would therefore recommend to either use Fs_v2 series VMs and automate the power-management or consider reserving the compute capacity for 3 years, providing significant cost saving. Any power management implementation will come with operational overheads and in both cases the cost savings are similar.&lt;/p&gt;</content:encoded></item></channel></rss>
