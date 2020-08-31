@@ -18,6 +18,6 @@ const Author = () => (
         </a>
       </p> */}
     </div>
-  );
+);
 
 export default Author;
