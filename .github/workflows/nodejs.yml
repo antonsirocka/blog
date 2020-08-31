@@ -27,6 +27,3 @@ jobs:
     - run: npm install -g yarn
     - run: yarn install --frozen-lockfile
     - run: yarn run lint
-    - run: yarn run test --runInBand --no-cache
-      env:
-        CI: true
