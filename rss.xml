@@ -1,4 +1,194 @@
-<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Anton's blog, Azure cloud and all things infrastructure related]]></title><description><![CDATA[My insights, analysis and tips to share with dev community]]></description><link>https://blog.anton-it.dev</link><generator>GatsbyJS</generator><lastBuildDate>Tue, 01 Sep 2020 20:41:01 GMT</lastBuildDate><item><title><![CDATA[Optimal VM for building code?]]></title><description><![CDATA[Every company runs into this challenge sooner or later - improve efficiency, lower build times, deploy faster. Azure offers VMs with varying CPU families. This article attempts to answer which one provides the best value for money.]]></description><link>https://blog.anton-it.dev/posts/optimal-vm-for-building-code</link><guid isPermaLink="false">https://blog.anton-it.dev/posts/optimal-vm-for-building-code</guid><pubDate>Thu, 27 Feb 2020 22:40:32 GMT</pubDate><content:encoded>&lt;p&gt;Every company runs into this challenge sooner or later. How to optimally build growing code base as efficiently as possible. Azure offers VMs in varying CPU families. This article attempts to answer which one provides the best value for money.&lt;/p&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Anton's blog, Azure cloud and all things infrastructure related]]></title><description><![CDATA[My insights, analysis and tips to share with dev community]]></description><link>https://blog.anton-it.dev</link><generator>GatsbyJS</generator><lastBuildDate>Wed, 02 Sep 2020 19:10:46 GMT</lastBuildDate><item><title><![CDATA[Building geo-redundant Azure API Management on a budget]]></title><description><![CDATA[Azure API management is a useful product in Azure offering, but the pricing structure makes it unattractive for building low cost geo-redundant infrastructure with no single point of failure.]]></description><link>https://blog.anton-it.dev/posts/buiding-geo-redundant-azure-apim-on-a-budget</link><guid isPermaLink="false">https://blog.anton-it.dev/posts/buiding-geo-redundant-azure-apim-on-a-budget</guid><pubDate>Wed, 02 Sep 2020 22:40:32 GMT</pubDate><content:encoded>&lt;p&gt;Azure API management is a useful product in Azure offering, but the pricing structure makes it unattractive for building low cost geo-redundant infrastructure with no single point of failure.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#what-is-azure-api-management-for&quot;&gt;What is Azure API Management for&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#the-price-of-managed-geo-redundancy&quot;&gt;The price of managed geo-redundancy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#diy-geo-redundancy-yourself&quot;&gt;DIY geo-redundancy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#solving-the-synchronisation-issue&quot;&gt;Solving the synchronisation issue&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#the-unintended-benefits-of-building-your-own-geo-redundancy&quot;&gt;The unintended benefits of building your own geo-redundancy&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;what-is-azure-api-management-for&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#what-is-azure-api-management-for&quot; aria-label=&quot;what is azure api management for permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;What is Azure API Management for&lt;/h2&gt;
+&lt;p&gt;Azure API management is a PaaS (platform-as-a-service) product in Azure designed to sit in front of your main API cluster/servers. It provides useful features such as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;detailed analytics data&lt;/li&gt;
+&lt;li&gt;authentication/athorisation&lt;/li&gt;
+&lt;li&gt;hide sensitive APIs while exposing only the ones you want (we all had that one API we didn’t want anyone to see, but were too lazy to implement it properly)&lt;/li&gt;
+&lt;li&gt;out-of-the-box developer portal giving users overview of all API operations&lt;/li&gt;
+&lt;li&gt;API management is &lt;code class=&quot;language-text&quot;&gt;not&lt;/code&gt; a load balancer, use Azure Front Door or Application Gateway for load balancing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;the-price-of-managed-geo-redundancy&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#the-price-of-managed-geo-redundancy&quot; aria-label=&quot;the price of managed geo redundancy permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;The price of managed geo-redundancy&lt;/h2&gt;
+&lt;p&gt;One of the drawbacks of API management is the relative cost of a multi-regional deployment. If full geo-redundancy is required for your infrastructure, your only option is to use the highest &lt;code class=&quot;language-text&quot;&gt;premium tier&lt;/code&gt;, which costs an eye-watering £2083/month (in West Europe region). Not only that, you’ll need to double this figure, since you need a premium instance in two separate regions. If you don’t need other premium features, such as handling 8000 request/sec (2 x 4000) or a virtual network support, you’ll be sending a lot of money to Microsoft every month without getting much in return.&lt;/p&gt;
+&lt;p&gt;The &lt;code class=&quot;language-text&quot;&gt;basic tier&lt;/code&gt; still handles around 1000 request/sec, which is more than sufficient for most solutions and costs just over £100/month. So, can you actually build the geo-redundancy into API management yourself? Yes. The only problem you have to solve is synchronisation of your APIs, users subscriptions and products across the instances.&lt;/p&gt;
+&lt;h2 id=&quot;diy-geo-redundancy&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#diy-geo-redundancy&quot; aria-label=&quot;diy geo redundancy permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;DIY geo-redundancy&lt;/h2&gt;
+&lt;p&gt;Assuming the infrastructure consists of a “blue” and “green” side with an API management instance sitting in front of it, the diagram would look like this:&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 344px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/4f21fe82792266e7571b1b7ec6e1ea6a/4fcbd/apim-bluegreen.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 125.83333333333333%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAZABQDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAIBBf/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhADEAAAAe/NSUCdwawf/8QAFRABAQAAAAAAAAAAAAAAAAAAIBH/2gAIAQEAAQUCVX//xAAUEQEAAAAAAAAAAAAAAAAAAAAg/9oACAEDAQE/AR//xAAUEQEAAAAAAAAAAAAAAAAAAAAg/9oACAECAQE/AR//xAAUEAEAAAAAAAAAAAAAAAAAAAAw/9oACAEBAAY/Ak//xAAZEAEAAwEBAAAAAAAAAAAAAAABABAhEUH/2gAIAQEAAT8hg7YvXKdRcg9p8hP/2gAMAwEAAgADAAAAEPPJPP/EABQRAQAAAAAAAAAAAAAAAAAAACD/2gAIAQMBAT8QH//EABQRAQAAAAAAAAAAAAAAAAAAACD/2gAIAQIBAT8QH//EABwQAQABBQEBAAAAAAAAAAAAAAEAEBEhMXFBYf/aAAgBAQABPxBbCxbi22i2mUsCgA+QzoxBGI7ezTiep//Z&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/4f21fe82792266e7571b1b7ec6e1ea6a/8ac56/apim-bluegreen.webp 240w,
+/static/4f21fe82792266e7571b1b7ec6e1ea6a/4664d/apim-bluegreen.webp 344w&quot;
+          sizes=&quot;(max-width: 344px) 100vw, 344px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/4f21fe82792266e7571b1b7ec6e1ea6a/09b79/apim-bluegreen.jpg 240w,
+/static/4f21fe82792266e7571b1b7ec6e1ea6a/4fcbd/apim-bluegreen.jpg 344w&quot;
+          sizes=&quot;(max-width: 344px) 100vw, 344px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/4f21fe82792266e7571b1b7ec6e1ea6a/4fcbd/apim-bluegreen.jpg&quot;
+          alt=&quot;apim-bluegreen.jpg&quot;
+          title=&quot;apim-bluegreen.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;After introducing a second API management instance in WestUK region and a traffic manager, the diagram would look like this:&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 359px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/f61fe53f566b033f246b658f6d27b5b0/1e323/apim-geo-redundant-bluegreen.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 160.83333333333334%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgABQDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAECBf/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhADEAAAAe/INoGaKyP/xAAYEAACAwAAAAAAAAAAAAAAAAAAEQEhMP/aAAgBAQABBQIdk4M//8QAFBEBAAAAAAAAAAAAAAAAAAAAIP/aAAgBAwEBPwEf/8QAFBEBAAAAAAAAAAAAAAAAAAAAIP/aAAgBAgEBPwEf/8QAFBABAAAAAAAAAAAAAAAAAAAAMP/aAAgBAQAGPwJP/8QAHBABAAICAwEAAAAAAAAAAAAAAQAhEBExQWFx/9oACAEBAAE/IYWGE9G4rriHsZe2sLcWp8T/2gAMAwEAAgADAAAAEKAEPP/EABQRAQAAAAAAAAAAAAAAAAAAACD/2gAIAQMBAT8QH//EABQRAQAAAAAAAAAAAAAAAAAAACD/2gAIAQIBAT8QH//EABsQAQADAQEBAQAAAAAAAAAAAAEAESExQRBh/9oACAEBAAE/EFqA6M/Pha9E2zXsamKZxy4dWDmw0uV0pxlIa7CgFp//2Q==&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/f61fe53f566b033f246b658f6d27b5b0/8ac56/apim-geo-redundant-bluegreen.webp 240w,
+/static/f61fe53f566b033f246b658f6d27b5b0/4b5c0/apim-geo-redundant-bluegreen.webp 359w&quot;
+          sizes=&quot;(max-width: 359px) 100vw, 359px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/f61fe53f566b033f246b658f6d27b5b0/09b79/apim-geo-redundant-bluegreen.jpg 240w,
+/static/f61fe53f566b033f246b658f6d27b5b0/1e323/apim-geo-redundant-bluegreen.jpg 359w&quot;
+          sizes=&quot;(max-width: 359px) 100vw, 359px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/f61fe53f566b033f246b658f6d27b5b0/1e323/apim-geo-redundant-bluegreen.jpg&quot;
+          alt=&quot;apim-geo-redundant-bluegreen.jpg&quot;
+          title=&quot;apim-geo-redundant-bluegreen.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;The thing to bear in mind is: Azure Traffic Manager is a DNS-based routing tool. It is capable of switching traffic manually between the API Management instances, however a more common configuration utilises a health probe. In a “priority” routing configuration, the decision to route traffic to an instance is done based on the endpoint’s priority and health status. Thefore it is useful to have a root API operation configured within API Mananagement, which has a single responsibility - to serve a &lt;code class=&quot;language-text&quot;&gt;200 OK&lt;/code&gt; response to the traffic manager probe. Here’s a sample configuration for such an API operation:&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 818px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/de2954fc38266ccac82a9c6d2eae1557/22492/apim-health-probe-api.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 35.416666666666664%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAHABQDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAEF/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEAMQAAAB3qAH/8QAFBABAAAAAAAAAAAAAAAAAAAAEP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAEP/aAAgBAwEBPwE//8QAFBEBAAAAAAAAAAAAAAAAAAAAEP/aAAgBAgEBPwE//8QAFBABAAAAAAAAAAAAAAAAAAAAEP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAEP/aAAgBAQABPyF//9oADAMBAAIAAwAAABCAD//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QP//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QP//EABkQAAIDAQAAAAAAAAAAAAAAAAABESFRMf/aAAgBAQABPxBrHFiTjpen/9k=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/de2954fc38266ccac82a9c6d2eae1557/8ac56/apim-health-probe-api.webp 240w,
+/static/de2954fc38266ccac82a9c6d2eae1557/d3be9/apim-health-probe-api.webp 480w,
+/static/de2954fc38266ccac82a9c6d2eae1557/3a941/apim-health-probe-api.webp 818w&quot;
+          sizes=&quot;(max-width: 818px) 100vw, 818px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/de2954fc38266ccac82a9c6d2eae1557/09b79/apim-health-probe-api.jpg 240w,
+/static/de2954fc38266ccac82a9c6d2eae1557/7cc5e/apim-health-probe-api.jpg 480w,
+/static/de2954fc38266ccac82a9c6d2eae1557/22492/apim-health-probe-api.jpg 818w&quot;
+          sizes=&quot;(max-width: 818px) 100vw, 818px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/de2954fc38266ccac82a9c6d2eae1557/22492/apim-health-probe-api.jpg&quot;
+          alt=&quot;apim-health-probe-api.jpg&quot;
+          title=&quot;apim-health-probe-api.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;We need the response to be served by API Management instance itself without involving our backend infrastructure (unlike normal API operations which would call the backend infrastructure when serving incoming requests), so we also need to create a simple policy for this API operation to facilitate the behaviour:&lt;/p&gt;
+&lt;p&gt;&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 580px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/544228810bdf044cdf641b660b0e8223/78d0c/apim-health-probe-policy.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 60%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAMABQDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAECBf/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhADEAAAAd2psQw//8QAFRABAQAAAAAAAAAAAAAAAAAAEAH/2gAIAQEAAQUCY//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8BP//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8BP//EABUQAQEAAAAAAAAAAAAAAAAAACAh/9oACAEBAAY/Aov/xAAaEAACAgMAAAAAAAAAAAAAAAABEAARMUFR/9oACAEBAAE/IdxR6si//9oADAMBAAIAAwAAABAnD//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QP//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QP//EABwQAQACAQUAAAAAAAAAAAAAAAEAESEQMUFRgf/aAAgBAQABPxClZgm8OS3kp7mTa//Z&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/544228810bdf044cdf641b660b0e8223/8ac56/apim-health-probe-policy.webp 240w,
+/static/544228810bdf044cdf641b660b0e8223/d3be9/apim-health-probe-policy.webp 480w,
+/static/544228810bdf044cdf641b660b0e8223/4fac6/apim-health-probe-policy.webp 580w&quot;
+          sizes=&quot;(max-width: 580px) 100vw, 580px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/544228810bdf044cdf641b660b0e8223/09b79/apim-health-probe-policy.jpg 240w,
+/static/544228810bdf044cdf641b660b0e8223/7cc5e/apim-health-probe-policy.jpg 480w,
+/static/544228810bdf044cdf641b660b0e8223/78d0c/apim-health-probe-policy.jpg 580w&quot;
+          sizes=&quot;(max-width: 580px) 100vw, 580px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/544228810bdf044cdf641b660b0e8223/78d0c/apim-health-probe-policy.jpg&quot;
+          alt=&quot;apim-health-probe-policy.jpg&quot;
+          title=&quot;apim-health-probe-policy.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;This policy takes any inbound request and responds with a 200 (OK) response. It also adds an “instance name” header with a value of “weu-apim”. This is useful if we need to send a request to the traffic manager ourselves to identify where the traffic is being routed. The response header will indicate the response was served by API management instance in West Europe (weu).&lt;/p&gt;
+&lt;p&gt;If there is a regional outage, or the API management instance becomes unvailable for any other reason (deleted by mistake or intentionally by an intruder), the traffic manager will become aware of this via the health probe and can automatically route traffic to the second instance with lower priority.&lt;/p&gt;
+&lt;h2 id=&quot;solving-the-synchronisation-issue&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#solving-the-synchronisation-issue&quot; aria-label=&quot;solving the synchronisation issue permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Solving the synchronisation issue&lt;/h2&gt;
+&lt;p&gt;The hardest part about doing DIY geo-redundancy yourself is setting up the synchronisation between multiple API Management instances. A company that goes through the effort of building a fully geo-redundancy infrastructure would be expected to following IaC (infrastructure-as-code) practices. There should be no manual changes done to APIs, products or policies within an API Management instance. Everything should be defined in code (terraform or similar). Management of users and subscriptions/api keys should also be done by an external micro-service, which needs to send the same request to multiple instances. For example, if a user “Adam” is created on API Management instance 1, the same user also needs to be created on instance 2. Error handling and logging is essencial for early detection of issues (what if instance 1 updates successfully, but instance 2 fails?).&lt;/p&gt;
+&lt;h2 id=&quot;the-unintended-benefits-of-building-your-own-geo-redundancy&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#the-unintended-benefits-of-building-your-own-geo-redundancy&quot; aria-label=&quot;the unintended benefits of building your own geo redundancy permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;The unintended benefits of building your own geo-redundancy&lt;/h2&gt;
+&lt;p&gt;Apart from cost savings, there are some unintended benefits of having separate instances fully under our control, rather than opting for a built-in geo-redundancy in Premium tier. Let’s say there are risky configuration changes about to go out into production environment. There’s always that possibility in cloud engineering… “What if things go wrong? Do I have a rollback strategy?” Having that backup API Management instance ready on-hand to pick up traffic should things go wrong is a significant safety asset that should not be underestimated.&lt;/p&gt;</content:encoded></item><item><title><![CDATA[Optimal VM for building code?]]></title><description><![CDATA[Every company runs into this challenge sooner or later - improve efficiency, lower build times, deploy faster. Azure offers VMs with varying CPU families. This article attempts to answer which one provides the best value for money.]]></description><link>https://blog.anton-it.dev/posts/optimal-vm-for-building-code</link><guid isPermaLink="false">https://blog.anton-it.dev/posts/optimal-vm-for-building-code</guid><pubDate>Thu, 27 Feb 2020 22:40:32 GMT</pubDate><content:encoded>&lt;p&gt;Every company runs into this challenge sooner or later. How to optimally build growing code base as efficiently as possible. Azure offers VMs in varying CPU families. This article attempts to answer which one provides the best value for money.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;#the-test-setup&quot;&gt;The test setup&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;#testing-methodology&quot;&gt;Testing methodology&lt;/a&gt;&lt;/li&gt;
