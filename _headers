@@ -102,6 +102,18 @@
   Link: </component---src-templates-page-template-js-83f43e27ab8b99d47ed8.js>; rel=preload; as=script
   Link: </page-data/app-data.json>; rel=preload; as=fetch; crossorigin
   Link: </page-data/pages/about/page-data.json>; rel=preload; as=fetch; crossorigin
+/pages/contacts/
+  Link: </webpack-runtime-c8573855508c231ef05e.js>; rel=preload; as=script
+  Link: </styles-89fd2ae28bdf06750a71.js>; rel=preload; as=script
+  Link: </framework-a4620de0399b10c30110.js>; rel=preload; as=script
+  Link: </532a2f07-b004a5d2f37fbac8de1a.js>; rel=preload; as=script
+  Link: </app-de9b8ccdb6f4dba33e99.js>; rel=preload; as=script
+  Link: </styles-89fd2ae28bdf06750a71.js>; rel=preload; as=script
+  Link: </cd95ea5cbd2c605f26db819f07999610c9ff4310-d23a2ec08e469ad1d699.js>; rel=preload; as=script
+  Link: </20e19934c602d69589a9213124171ceb5d7986a3-4b0a04ca4225dccf9811.js>; rel=preload; as=script
+  Link: </component---src-templates-page-template-js-83f43e27ab8b99d47ed8.js>; rel=preload; as=script
+  Link: </page-data/app-data.json>; rel=preload; as=fetch; crossorigin
+  Link: </page-data/pages/contacts/page-data.json>; rel=preload; as=fetch; crossorigin
 /posts/optimal-vm-for-building-code
   Link: </webpack-runtime-c8573855508c231ef05e.js>; rel=preload; as=script
   Link: </styles-89fd2ae28bdf06750a71.js>; rel=preload; as=script
@@ -126,18 +138,6 @@
   Link: </component---src-templates-post-template-js-38bfbe26fdf498ec714b.js>; rel=preload; as=script
   Link: </page-data/app-data.json>; rel=preload; as=fetch; crossorigin
   Link: </page-data/posts/buiding-geo-redundant-azure-apim-on-a-budget/page-data.json>; rel=preload; as=fetch; crossorigin
-/pages/contacts/
-  Link: </webpack-runtime-c8573855508c231ef05e.js>; rel=preload; as=script
-  Link: </styles-89fd2ae28bdf06750a71.js>; rel=preload; as=script
-  Link: </framework-a4620de0399b10c30110.js>; rel=preload; as=script
-  Link: </532a2f07-b004a5d2f37fbac8de1a.js>; rel=preload; as=script
-  Link: </app-de9b8ccdb6f4dba33e99.js>; rel=preload; as=script
-  Link: </styles-89fd2ae28bdf06750a71.js>; rel=preload; as=script
-  Link: </cd95ea5cbd2c605f26db819f07999610c9ff4310-d23a2ec08e469ad1d699.js>; rel=preload; as=script
-  Link: </20e19934c602d69589a9213124171ceb5d7986a3-4b0a04ca4225dccf9811.js>; rel=preload; as=script
-  Link: </component---src-templates-page-template-js-83f43e27ab8b99d47ed8.js>; rel=preload; as=script
-  Link: </page-data/app-data.json>; rel=preload; as=fetch; crossorigin
-  Link: </page-data/pages/contacts/page-data.json>; rel=preload; as=fetch; crossorigin
 /tag/api-management
   Link: </webpack-runtime-c8573855508c231ef05e.js>; rel=preload; as=script
   Link: </styles-89fd2ae28bdf06750a71.js>; rel=preload; as=script
