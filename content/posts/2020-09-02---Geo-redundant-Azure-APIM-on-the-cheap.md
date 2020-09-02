@@ -27,7 +27,7 @@ Azure API management is a useful product in Azure offering, but the pricing stru
 Azure API management is a PaaS (platform-as-a-service) product in Azure designed to sit in front of your main API cluster/servers. It provides useful features such as:
 - detailed analytics data
 - authentication/athorisation
-- hide sensitive APIs while exposing only the ones you want (we all had that one API we didn't want anyone to see, but were too lazy to implement it properly)
+- hide sensitive APIs while exposing only the ones you want (we all had that one API we didn't want anyone to see, but were too lazy to secure it properly)
 - out-of-the-box developer portal giving users overview of all API operations
 - API management is `not` a load balancer, use Azure Front Door or Application Gateway for load balancing
 
