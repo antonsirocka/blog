@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://blog.anton-it.dev/sitemap.xml
+Host: https://blog.anton-it.dev
