@@ -187,7 +187,7 @@ module.exports = {
         sitemap: 'https://blog.anton-it.dev/sitemap.xml',
         policy: [{ userAgent: '*', allow: '/' }]
       },
-    },    
+    },
     {
       resolve: 'gatsby-plugin-manifest',
       options: {
