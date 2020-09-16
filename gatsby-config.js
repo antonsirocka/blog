@@ -181,6 +181,14 @@ module.exports = {
       }
     },
     {
+      resolve: 'gatsby-plugin-robots-txt',
+      options: {
+        host: 'https://blog.anton-it.dev',
+        sitemap: 'https://blog.anton-it.dev/sitemap.xml',
+        policy: [{ userAgent: '*', allow: '/' }]
+      },
+    },    
+    {
       resolve: 'gatsby-plugin-manifest',
       options: {
         name: siteConfig.title,
