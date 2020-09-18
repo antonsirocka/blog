@@ -43,7 +43,7 @@ The difference in real IIS performance between a single 8 vcore VM and two 4 vco
 
 ## Infrastructure setup
 
-The infrastructure setup consists of an Azure API management instance, followed by an application gateway that serves as a load balancer and TLS termination point. The traffic is load balanced to a virtual machine scaleset, which contains either 1 or 2 VM instances (in this case a DS12_v2 size). I've used two JMeter profiles. One that generates a substantial traffic (load profile A), but enough to saturate the instances. I've then created a second load profile B, which generates traffic levels sufficient enough to saturate the instances to a point when service degradation occurs.
+The infrastructure setup consists of an Azure API management instance, followed by an application gateway that serves as a load balancer and TLS termination point. The traffic is load balanced to a virtual machine scaleset, which contains either 1 or 2 VM instances (in this case a DS12_v2 size). I've used two JMeter profiles. One that generates a medium level of traffic (load profile A). I've then created a second load profile B, which generates traffic levels sufficient enough to saturate the instances to a point when service degradation could occur.
 
 Infrastructure setup with a single VM instance:
 ![1-vm-configuration.jpg](/media/1-vm-configuration.jpg)
