@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Anton's blog, Azure cloud and all things infrastructure related]]></title><description><![CDATA[My insights, analysis and tips to share with dev community]]></description><link>https://blog.anton-it.dev</link><generator>GatsbyJS</generator><lastBuildDate>Fri, 18 Sep 2020 19:45:38 GMT</lastBuildDate><item><title><![CDATA[How does a single VM performance compare to multiple VMs? (Windows Server/IIS)]]></title><description><![CDATA[Having you ever wondered if 2 VMs would provide the same level of performance in IIS as a single VM of double the size? The following analysis will attempt to answer the question.]]></description><link>https://blog.anton-it.dev/posts/how-does-a-single-vm-performance-compare-to-multiple-vms-in-iis</link><guid isPermaLink="false">https://blog.anton-it.dev/posts/how-does-a-single-vm-performance-compare-to-multiple-vms-in-iis</guid><pubDate>Fri, 18 Sep 2020 22:40:32 GMT</pubDate><content:encoded>&lt;p&gt;Having you ever wondered if 2 VMs would provide the same level of performance in IIS as a single VM of double the size? The following analysis will attempt to answer the question.&lt;/p&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Anton's blog, Azure cloud and all things infrastructure related]]></title><description><![CDATA[My insights, analysis and tips to share with dev community]]></description><link>https://blog.anton-it.dev</link><generator>GatsbyJS</generator><lastBuildDate>Sun, 20 Sep 2020 09:05:52 GMT</lastBuildDate><item><title><![CDATA[How does a single VM performance compare to multiple VMs? (Windows Server/IIS)]]></title><description><![CDATA[Having you ever wondered if 2 VMs would provide the same level of performance in IIS as a single VM of double the size? The following analysis will attempt to answer the question.]]></description><link>https://blog.anton-it.dev/posts/how-does-a-single-vm-performance-compare-to-multiple-vms-in-iis</link><guid isPermaLink="false">https://blog.anton-it.dev/posts/how-does-a-single-vm-performance-compare-to-multiple-vms-in-iis</guid><pubDate>Fri, 18 Sep 2020 22:40:32 GMT</pubDate><content:encoded>&lt;p&gt;Having you ever wondered if 2 VMs would provide the same level of performance in IIS as a single VM of double the size? The following analysis will attempt to answer the question.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;#the-argument-for-multiple-vm-instances&quot;&gt;The argument for multiple VM instances&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;#infrastructure-setup&quot;&gt;Infrastructure setup&lt;/a&gt;&lt;/li&gt;
@@ -7,7 +7,7 @@
 &lt;li&gt;&lt;a href=&quot;#conclusions&quot;&gt;Conclusions&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id=&quot;the-argument-for-multiple-vm-instances&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#the-argument-for-multiple-vm-instances&quot; aria-label=&quot;the argument for multiple vm instances permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;The argument for multiple VM instances&lt;/h2&gt;
-&lt;p&gt;Running multiple instances of identical virtual machines is nearly always a good idea and became de-facto a standard in modern infrastructures running on Kubernetes. The concept of &lt;code class=&quot;language-text&quot;&gt;cattle vs pets&lt;/code&gt; describes these identical nodes as disposable &lt;code class=&quot;language-text&quot;&gt;cattle&lt;/code&gt;. We are encouraged to kill of nodes at will and replace them very quickly. Thus, increasing the resiliency of the infrastructure. On the other hand, once we start making custom modifications on individual nodes, they will slowly turn into &lt;code class=&quot;language-text&quot;&gt;pets&lt;/code&gt;. Something we need look after, care for and under no circumstances want to lose.&lt;/p&gt;
+&lt;p&gt;Running multiple instances of identical virtual machines is nearly always a good idea and became de-facto a standard in modern infrastructures running on Kubernetes. The concept of &lt;code class=&quot;language-text&quot;&gt;cattle vs pets&lt;/code&gt; describes these identical nodes as disposable &lt;code class=&quot;language-text&quot;&gt;cattle&lt;/code&gt;. We are encouraged to kill off nodes at will and replace them very quickly. Thus, increasing the resiliency of the infrastructure. On the other hand, once we start making custom modifications on individual nodes, they will slowly turn into &lt;code class=&quot;language-text&quot;&gt;pets&lt;/code&gt;. Something we need look after, care for and under no circumstances want to lose.&lt;/p&gt;
 &lt;p&gt;In Kubernetes the &lt;code class=&quot;language-text&quot;&gt;cattle&lt;/code&gt; concept is enforced from the ground up. However, most production workloads these days still run on IIS or similiar web servers sitting behind a load balancer. All infrastructure engineers have come face-to-face with such setup at some point and the inevitable questions come up: How to size up virtual machine to get optimal performance? Is it better to use a large number of small instances or a small number of large instances?&lt;/p&gt;
 &lt;h3 id=&quot;advantages-of-running-many-small-instances&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#advantages-of-running-many-small-instances&quot; aria-label=&quot;advantages of running many small instances permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Advantages of running many small instances&lt;/h3&gt;
 &lt;ul&gt;
@@ -25,48 +25,6 @@
 &lt;h2 id=&quot;infrastructure-setup&quot; style=&quot;position:relative;&quot;&gt;&lt;a href=&quot;#infrastructure-setup&quot; aria-label=&quot;infrastructure setup permalink&quot; class=&quot;anchor before&quot;&gt;&lt;svg aria-hidden=&quot;true&quot; focusable=&quot;false&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Infrastructure setup&lt;/h2&gt;
 &lt;p&gt;The infrastructure setup consists of an Azure API management instance, followed by an application gateway that serves as a load balancer and TLS termination point. The traffic is load balanced to a virtual machine scaleset, which contains either 1 or 2 VM instances (in this case a DS12_v2 size). I’ve used two JMeter profiles. One that generates a medium level of traffic (load profile A). I’ve then created a second load profile B, which generates traffic levels sufficient enough to saturate the instances to a point when service degradation could occur.&lt;/p&gt;
 &lt;p&gt;Infrastructure setup with a single VM instance:
-&lt;span
-      class=&quot;gatsby-resp-image-wrapper&quot;
-      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 715px; &quot;
-    &gt;
-      &lt;a
-    class=&quot;gatsby-resp-image-link&quot;
-    href=&quot;/static/fc2d676baf6d53d4701980ed177122de/d33ce/1-vm-configuration.jpg&quot;
-    style=&quot;display: block&quot;
-    target=&quot;_blank&quot;
-    rel=&quot;noopener&quot;
-  &gt;
-    &lt;span
-    class=&quot;gatsby-resp-image-background-image&quot;
-    style=&quot;padding-bottom: 32.49999999999999%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAHABQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAG8AD//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAEFAn//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAEDAQE/AT//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAECAQE/AT//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAY/An//xAAWEAEBAQAAAAAAAAAAAAAAAAAAASH/2gAIAQEAAT8h1qR//9oADAMBAAIAAwAAABDwD//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QP//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QP//EABkQAAMBAQEAAAAAAAAAAAAAAAABIRFBYf/aAAgBAQABPxBxEtOIvaKw/9k=&apos;); background-size: cover; display: block;&quot;
-  &gt;&lt;/span&gt;
-  &lt;picture&gt;
-        &lt;source
-          srcset=&quot;/static/fc2d676baf6d53d4701980ed177122de/8ac56/1-vm-configuration.webp 240w,
-/static/fc2d676baf6d53d4701980ed177122de/d3be9/1-vm-configuration.webp 480w,
-/static/fc2d676baf6d53d4701980ed177122de/cb533/1-vm-configuration.webp 715w&quot;
-          sizes=&quot;(max-width: 715px) 100vw, 715px&quot;
-          type=&quot;image/webp&quot;
-        /&gt;
-        &lt;source
-          srcset=&quot;/static/fc2d676baf6d53d4701980ed177122de/09b79/1-vm-configuration.jpg 240w,
-/static/fc2d676baf6d53d4701980ed177122de/7cc5e/1-vm-configuration.jpg 480w,
-/static/fc2d676baf6d53d4701980ed177122de/d33ce/1-vm-configuration.jpg 715w&quot;
-          sizes=&quot;(max-width: 715px) 100vw, 715px&quot;
-          type=&quot;image/jpeg&quot;
-        /&gt;
-        &lt;img
-          class=&quot;gatsby-resp-image-image&quot;
-          src=&quot;/static/fc2d676baf6d53d4701980ed177122de/d33ce/1-vm-configuration.jpg&quot;
-          alt=&quot;1-vm-configuration.jpg&quot;
-          title=&quot;1-vm-configuration.jpg&quot;
-          loading=&quot;lazy&quot;
-          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
-        /&gt;
-      &lt;/picture&gt;
-  &lt;/a&gt;
-    &lt;/span&gt;&lt;/p&gt;
-&lt;p&gt;Infrastructure setup with a two VM instances:
 &lt;span
       class=&quot;gatsby-resp-image-wrapper&quot;
       style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 715px; &quot;
@@ -102,6 +60,48 @@
           src=&quot;/static/11a106fdd45968f2c53ab92815995f4b/d33ce/2-vm-configuration.jpg&quot;
           alt=&quot;2-vm-configuration.jpg&quot;
           title=&quot;2-vm-configuration.jpg&quot;
+          loading=&quot;lazy&quot;
+          style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
+        /&gt;
+      &lt;/picture&gt;
+  &lt;/a&gt;
+    &lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Infrastructure setup with a two VM instances:
+&lt;span
+      class=&quot;gatsby-resp-image-wrapper&quot;
+      style=&quot;position: relative; display: block; margin-left: auto; margin-right: auto; max-width: 715px; &quot;
+    &gt;
+      &lt;a
+    class=&quot;gatsby-resp-image-link&quot;
+    href=&quot;/static/fc2d676baf6d53d4701980ed177122de/d33ce/1-vm-configuration.jpg&quot;
+    style=&quot;display: block&quot;
+    target=&quot;_blank&quot;
+    rel=&quot;noopener&quot;
+  &gt;
+    &lt;span
+    class=&quot;gatsby-resp-image-background-image&quot;
+    style=&quot;padding-bottom: 32.49999999999999%; position: relative; bottom: 0; left: 0; background-image: url(&apos;data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAHABQDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAG8AD//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAEFAn//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAEDAQE/AT//xAAUEQEAAAAAAAAAAAAAAAAAAAAQ/9oACAECAQE/AT//xAAUEAEAAAAAAAAAAAAAAAAAAAAQ/9oACAEBAAY/An//xAAWEAEBAQAAAAAAAAAAAAAAAAAAASH/2gAIAQEAAT8h1qR//9oADAMBAAIAAwAAABDwD//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QP//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QP//EABkQAAMBAQEAAAAAAAAAAAAAAAABIRFBYf/aAAgBAQABPxBxEtOIvaKw/9k=&apos;); background-size: cover; display: block;&quot;
+  &gt;&lt;/span&gt;
+  &lt;picture&gt;
+        &lt;source
+          srcset=&quot;/static/fc2d676baf6d53d4701980ed177122de/8ac56/1-vm-configuration.webp 240w,
+/static/fc2d676baf6d53d4701980ed177122de/d3be9/1-vm-configuration.webp 480w,
+/static/fc2d676baf6d53d4701980ed177122de/cb533/1-vm-configuration.webp 715w&quot;
+          sizes=&quot;(max-width: 715px) 100vw, 715px&quot;
+          type=&quot;image/webp&quot;
+        /&gt;
+        &lt;source
+          srcset=&quot;/static/fc2d676baf6d53d4701980ed177122de/09b79/1-vm-configuration.jpg 240w,
+/static/fc2d676baf6d53d4701980ed177122de/7cc5e/1-vm-configuration.jpg 480w,
+/static/fc2d676baf6d53d4701980ed177122de/d33ce/1-vm-configuration.jpg 715w&quot;
+          sizes=&quot;(max-width: 715px) 100vw, 715px&quot;
+          type=&quot;image/jpeg&quot;
+        /&gt;
+        &lt;img
+          class=&quot;gatsby-resp-image-image&quot;
+          src=&quot;/static/fc2d676baf6d53d4701980ed177122de/d33ce/1-vm-configuration.jpg&quot;
+          alt=&quot;1-vm-configuration.jpg&quot;
+          title=&quot;1-vm-configuration.jpg&quot;
           loading=&quot;lazy&quot;
           style=&quot;width:100%;height:100%;margin:0;vertical-align:middle;position:absolute;top:0;left:0;&quot;
         /&gt;
