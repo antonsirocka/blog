@@ -24,7 +24,7 @@ Having you ever wondered if 2 VMs would provide the same level of performance in
 
 ## The argument for multiple VM instances
 
-Running multiple instances of identical virtual machines is nearly always a good idea and became de-facto a standard in modern infrastructures running on Kubernetes. The concept of `cattle vs pets` describes these identical nodes as disposable `cattle`. We are encouraged to kill of nodes at will and replace them very quickly. Thus, increasing the resiliency of the infrastructure. On the other hand, once we start making custom modifications on individual nodes, they will slowly turn into `pets`. Something we need look after, care for and under no circumstances want to lose.
+Running multiple instances of identical virtual machines is nearly always a good idea and became de-facto a standard in modern infrastructures running on Kubernetes. The concept of `cattle vs pets` describes these identical nodes as disposable `cattle`. We are encouraged to kill off nodes at will and replace them very quickly. Thus, increasing the resiliency of the infrastructure. On the other hand, once we start making custom modifications on individual nodes, they will slowly turn into `pets`. Something we need look after, care for and under no circumstances want to lose.
 
 In Kubernetes the `cattle` concept is enforced from the ground up. However, most production workloads these days still run on IIS or similiar web servers sitting behind a load balancer. All infrastructure engineers have come face-to-face with such setup at some point and the inevitable questions come up: How to size up virtual machine to get optimal performance? Is it better to use a large number of small instances or a small number of large instances?
 
@@ -46,10 +46,10 @@ The difference in real IIS performance between a single 8 vcore VM and two 4 vco
 The infrastructure setup consists of an Azure API management instance, followed by an application gateway that serves as a load balancer and TLS termination point. The traffic is load balanced to a virtual machine scaleset, which contains either 1 or 2 VM instances (in this case a DS12_v2 size). I've used two JMeter profiles. One that generates a medium level of traffic (load profile A). I've then created a second load profile B, which generates traffic levels sufficient enough to saturate the instances to a point when service degradation could occur.
 
 Infrastructure setup with a single VM instance:
-![1-vm-configuration.jpg](/media/1-vm-configuration.jpg)
+![2-vm-configuration.jpg](/media/2-vm-configuration.jpg)
 
 Infrastructure setup with a two VM instances:
-![2-vm-configuration.jpg](/media/2-vm-configuration.jpg)
+![1-vm-configuration.jpg](/media/1-vm-configuration.jpg)
 
 ## Performance test with a single VM instance
 
