@@ -4,7 +4,7 @@ date: "2021-02-21T14:48:32.169Z"
 template: "post"
 draft: false
 slug: "automate-lets-encrypt-wildcard-certificate-deployment-to-an-azure-vm"
-category: "Azure"
+category: "Security"
 tags:
   - "Azure"
   - "Virtual Machines"

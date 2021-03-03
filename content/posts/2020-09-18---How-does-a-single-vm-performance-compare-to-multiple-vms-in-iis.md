@@ -4,7 +4,7 @@ date: "2020-09-18T22:40:32.169Z"
 template: "post"
 draft: false
 slug: "how-does-a-single-vm-performance-compare-to-multiple-vms-in-iis"
-category: "Azure"
+category: "Performance"
 tags:
   - "Azure"
   - "Virtual Machines"
