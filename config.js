@@ -27,7 +27,7 @@ module.exports = {
   author: {
     name: 'Anton Sirocka',
     photo: '/photo.jpg',
-    bio: 'Principal Site Reliability Engineer at Sorted Group (Manchester UK)',
+    bio: 'Senior DevOps Engineer at Sphera',
     contacts: {
       email: 'mail@anton-it.dev',
       facebook: '',
